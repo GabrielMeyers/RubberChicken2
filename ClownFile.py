@@ -10,8 +10,8 @@ class Clown:
         self.x = random.randrange(0,600)
         self.y = random.randrange(0,200)
         angle = random.random()*2*math.pi
-        self.vx = 300 * math.cos(angle)
-        self.vy = 300 * math.cos(angle)
+        self.vx = random.randrange (-200,200)
+        self.vy = random.randrange (-200,200)
         self.i_am_alive = True
         self.image = pygame.image.load("images/invader.gif")
         self.width = self.image.get_rect().width

@@ -10,7 +10,7 @@ class Pie:
         self.x = x
         self.y = y
         self.vx = 0
-        self.vy = -700
+        self.vy = -1500
         self.i_am_alive = True
         self.image = pygame.image.load("images/Bullet.png")
         self.width = self.image.get_rect().width

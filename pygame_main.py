@@ -11,12 +11,13 @@ from ClownFile import Clown
 from ChickenFile import Chicken
 from PieFile import Pie
 from CarFile import Car
+from playsound import playsound
 # =====================  setup()
 def setup():
     """
     This happens once in the program, at the very beginning.
     """
-    global canvas, objects_on_screen, objects_to_add, bg_color, game_mode, pie_list, the_chicken, the_clown, score, ammo, car_list
+    global canvas, objects_on_screen, objects_to_add, bg_color, game_mode, pie_list, the_chicken, the_clown, score, ammo, car_list, hits, misses
     canvas = pygame.display.set_mode((600, 600))
     objects_on_screen = []  # this is a list of all things that should be drawn on screen.
     objects_to_add = [] #this is a list of things that should be added to the list on screen. Put them here while you
@@ -42,6 +43,8 @@ def setup():
 
     score = 0
     ammo = 10
+    hits = 0
+    misses = 0
 # =====================  loop()
 def loop(delta_T):
     """
@@ -63,9 +66,13 @@ def loop(delta_T):
         draw_objects()
         check_pie_clown_collision()
         check_pie_car_collision()
+        calc_misses()
         show_stats(delta_T) #optional. Comment this out if it annoys you.
+        the_end_game()
     #if game_mode == GAME_MODE_OVER
     pygame.display.flip()  # updates the window to show the latest version of the buffer.
+
+
 
 
 # =====================  animate_objects()
@@ -138,6 +145,8 @@ def show_stats(delta_T):
     score_text_rect.top = canvas.get_rect().top + 10
     canvas.blit(score_text_surface, score_text_rect)  # ... and copy it to the buffer at the location of the box
 
+
+
     ammo_string = f"AMMO: {ammo}"
     ammo_text_surface = stats_font.render(ammo_string, True, white_color)  # this makes a transparent box with text
     ammo_text_rect = ammo_text_surface.get_rect()  # gets a copy of the bounds of the transparent box
@@ -160,14 +169,32 @@ def show_stats(delta_T):
     objects_text_rect.bottom = canvas.get_rect().bottom - 10
     canvas.blit(objects_text_surface, objects_text_rect)
 
+    hits_string = f"HITS: {hits}"
+    hits_text_surface = stats_font.render(hits_string, True, white_color)  # this makes a transparent box with text
+    hits_text_rect = hits_text_surface.get_rect()  # gets a copy of the bounds of the transparent box
+    hits_text_rect.left = 10  # now relocate the box to the left side top
+    hits_text_rect.top = canvas.get_rect().top + 20
+    canvas.blit(hits_text_surface, hits_text_rect)
+
+    misses_string = f"MISSES: {misses}"
+    misses_text_surface = stats_font.render(misses_string, True, white_color)  # this makes a transparent box with text
+    misses_text_rect = misses_text_surface.get_rect()  # gets a copy of the bounds of the transparent box
+    misses_text_rect.left = 10  # now relocate the box to the left side top
+    misses_text_rect.top = canvas.get_rect().top + 30
+    canvas.blit(misses_text_surface, misses_text_rect)
 def check_pie_clown_collision():
-    global score
+    global score, hits
     for pie in pie_list:
         if abs(pie.x - the_clown.x) < (pie.width/2 +the_clown.width/2) and \
             abs(pie.y - the_clown.y) < (pie.height / 2 + the_clown.height / 2):
             pie.die()
             print("HIT")
             score += 50
+            hits += 1
+            pygame.mixer.music.load('sounds/Smashingsound.mp3')
+            pygame.mixer.music.play(1)
+            # playsound('sounds/Smashingsound.mp3')
+
 
 def check_pie_car_collision():
     global score
@@ -178,6 +205,9 @@ def check_pie_car_collision():
                 pie.die()
                 print("Oops")
                 score -= 50
+                pygame.mixer.music.load('sounds/engineer_no01.mp3')
+                pygame.mixer.music.play(1)
+
 def shoot_pie():
     global ammo
     if len(pie_list) == 0 and ammo > 0:
@@ -185,6 +215,32 @@ def shoot_pie():
         pie_list.append(temp_pie)
         objects_to_add.append(temp_pie)
         ammo -= 1
+
+def calc_misses():
+    global misses
+    misses = 10-ammo - hits
+
+def the_end_game():
+    global pie, clown, chicken, left_car, right_car
+    if ammo == 0:
+        canvas.fill(pygame.Color("black"))
+        gameover_font = pygame.font.SysFont("Arial", 96)
+        gameover_color = pygame.Color("yellow")
+
+        gameover_surface = gameover_font.render("Game Over", True, gameover_color)
+        gameover_rectangle = gameover_surface.get_rect()
+
+        canvas.blit(gameover_surface, (300 - gameover_rectangle.width / 2, 300 - gameover_rectangle.height / 2))
+
+        score_font = pygame.font.SysFont("Arial", 96)
+        score_color = pygame.Color("yellow")
+
+        score_surface = score_font.render(f'SCORE:{score} ', True, score_color)
+        score_rectangle = score_surface.get_rect()
+
+        canvas.blit(score_surface, (300 - score_rectangle.width / 2, 500 - score_rectangle.height / 2))
+          #
+
 
 # =====================  read_events()
 def read_events():
